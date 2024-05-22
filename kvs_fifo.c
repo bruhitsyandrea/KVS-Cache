@@ -143,16 +143,16 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
     curr = curr->next;
   }
 
-  // full cache, scrap oldest one
+  // full cache, evict oldest one
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
-    queue_node *remove = dequeue(kvs_fifo->queue);
-    if (remove == NULL) {
+    queue_node *evict = dequeue(kvs_fifo->queue);
+    if (evict == NULL) {
       return FAILURE;
     }
 
-    free(remove->key);
-    free(remove->value);
-    free(remove);
+    free(evict->key);
+    free(evict->value);
+    free(evict);
   }
 
   enqueue(kvs_fifo->queue, key, value);
@@ -187,10 +187,10 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
   }
 
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
-    queue_node *remove = dequeue(kvs_fifo->queue);
-    free(remove->key);
-    free(remove->value);
-    free(remove);
+    queue_node *evict = dequeue(kvs_fifo->queue);
+    free(evict->key);
+    free(evict->value);
+    free(evict);
   }
 
   enqueue(kvs_fifo->queue, key, temp);
