@@ -109,10 +109,9 @@ int kvs_lru_set(kvs_lru_t* kvs_lru, const char* key, const char* value) {
   Node* curr = kvs_lru->head;
   while (curr) {
     if (strcmp(curr->key, key) == 0) {
-      char* val = strdup(val);
-      if (!val) return FAILURE;
       free(curr->value);
-      curr->value = val;
+      curr->value = strdup(value);
+      if (!curr->value) return FAILURE;
 
       move_front(kvs_lru, curr);
       return SUCCESS;
@@ -158,7 +157,7 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
   }
 
   Node* curr = kvs_lru->head;
-  while (curr) {
+  while (curr != NULL) {
     if (strcmp(curr->key, key) == 0) {
       strcpy(value, curr->value);
 
@@ -176,7 +175,10 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
 
   if (kvs_lru->size >= kvs_lru->capacity) {
     Node* evict = kvs_lru->tail;
-    detach_node(evict, kvs_lru);
+    if (evict->prev) {
+      evict->prev->next = NULL;
+    }
+    kvs_lru->tail = evict->prev;
     free(evict->key);
     free(evict->value);
     free(evict);
@@ -187,7 +189,15 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
   if (N == NULL) {
     return FAILURE;
   }
-  move_front(kvs_lru, N);
+  N->next = kvs_lru->head;
+  if (kvs_lru->head) {
+    kvs_lru->head->prev = N;
+  }
+  kvs_lru->head = N;
+  if (kvs_lru->tail == NULL) {
+    kvs_lru->tail = N;
+  }
+  kvs_lru->size++;
   strcpy(value, temp);
 
   return SUCCESS;
