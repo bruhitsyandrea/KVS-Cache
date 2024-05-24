@@ -24,7 +24,17 @@ Node* create_node(const char* key, const char* value) {
   if (new_node == NULL) return NULL;
 
   new_node->key = strdup(key);
+  if (new_node->key == NULL) {
+    free(new_node);
+    return NULL;
+  }
   new_node->value = strdup(value);
+  if (new_node->value == NULL) {
+    free(new_node->key);
+    free(new_node);
+    return NULL;
+  }
+
   new_node->prev = new_node->next = NULL;
   return new_node;
 }
@@ -32,36 +42,35 @@ Node* create_node(const char* key, const char* value) {
 void detach_node(Node* node, kvs_lru_t* cache) {
   if (node->prev) {
     node->prev->next = node->next;
+  } else {
+    cache->head = node->next;
   }
   if (node->next) {
     node->next->prev = node->prev;
-  }
-  if (node == cache->tail) {
+  } else {
     cache->tail = node->prev;
   }
 }
 
 void move_front(kvs_lru_t* cache, Node* node) {
   if (node == cache->head) {
-    return;
+    return;  // when its alrdy first node
   }
 
-  if (node->next) {
-    node->next->prev = node->prev;
-  }
-  if (node->prev) {
-    node->prev->next = node->next;
-  }
-  if (node == cache->tail) {
-    cache->tail = node->prev;
-  }
+  // detach the first node
+  detach_node(node, cache);
+  node->next = node->head;
 
-  node->next = cache->head;
-  node->prev = NULL;
-  if (cache->head) {
+  node->prev = NULL;  // first node don't have anything in front
+
+  if (cache->head != NULL) {
     cache->head->prev = node;
   }
   cache->head = node;
+
+  if (cache->tail == NULL) {
+    cache->tail = node;
+  }
 }
 
 kvs_lru_t* kvs_lru_new(kvs_base_t* kvs, int capacity) {
