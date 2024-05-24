@@ -1,8 +1,8 @@
 #include "kvs_lru.h"
 #define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 typedef struct Node {
   char* key;
@@ -176,9 +176,11 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
 
   if (kvs_lru->size >= kvs_lru->capacity) {
     Node* evict = kvs_lru->tail;
-    printf("evicting key: %s\n", evict->key);
-    detach_node(evict, kvs_lru);
-    //kvs_lru->tail = evict->prev;
+    if (evict->prev) {
+      evict->prev->next = NULL;
+    }
+    kvs_lru->tail = evict->prev;
+    // kvs_lru->tail = evict->prev;
     free(evict->key);
     free(evict->value);
     free(evict);
