@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**Structure definitions**/
+
 typedef struct Node {
   char* key;
   char* value;
@@ -39,6 +41,16 @@ Node* create_node(const char* key, const char* value) {
   return new_node;
 }
 
+void free_node(Node* node) {
+  if (node != NULL) {
+    free(node->key);
+    free(node->value);
+    free(node);
+  }
+}
+
+/**helper functions**/
+
 void detach_node(Node* node, kvs_lru_t* cache) {
   if (node->prev) {
     node->prev->next = node->next;
@@ -73,6 +85,18 @@ void move_front(kvs_lru_t* cache, Node* node) {
   }
 }
 
+Node* find_in_cache(kvs_lru_t* cache, const char* key) {
+  Node* curr = cache->head;
+  while (curr != NULL) {
+    if (strcmp(curr->key, key) == 0) {
+      return curr;
+    }
+    curr = curr->next;
+  }
+  return NULL;
+}
+
+/**kvs_lru function implementations**/
 kvs_lru_t* kvs_lru_new(kvs_base_t* kvs, int capacity) {
   kvs_lru_t* kvs_lru = malloc(sizeof(kvs_lru_t));
   kvs_lru->kvs_base = kvs;
@@ -151,56 +175,25 @@ int kvs_lru_set(kvs_lru_t* kvs_lru, const char* key, const char* value) {
 
 int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
   // TODO: implement this function
-  // 1. search cache 2. move to front 3. fetch base 4. cache full 5. add cache
-  if (kvs_lru == NULL || key == NULL || value == NULL) {
-    return FAILURE;
-  }
-
-  Node* curr = kvs_lru->head;
-  while (curr != NULL) {
-    if (strcmp(curr->key, key) == 0) {
-      strcpy(value, curr->value);
-
-      move_front(kvs_lru, curr);
-
-      return SUCCESS;
+   Node* node = find_in_cache(kvs_lru, key);
+   if (node){
+    strcpy(value, node->value);
+    move_front(kvs_lru,node);
+    return SUCCESS;
+   } else {
+    int result = kvs_base_get(kvs_lru->kvs_base, key, value);
+    if (result == SUCCESS) {
+      if (kvs_lru->size == kvs_lru->capacity) {
+        Node* lru = kvs_lru->tail;
+        detach_node(lru, kvs_lru);
+        free_node(lru);
+      }
+      Node* N = create_node(key, value);
+      move_front(kvs_lru, N);
+      kvs_lru->size += (kvs_lru->size < kvs_lru->capacity) ? 1 : 0;
     }
-    curr = curr->next;
-  }
-
-  char temp[KVS_VALUE_MAX];
-  if (kvs_base_get(kvs_lru->kvs_base, key, temp) == FAILURE) {
-    return FAILURE;
-  }
-
-  if (kvs_lru->size >= kvs_lru->capacity) {
-    Node* evict = kvs_lru->tail;
-    if (evict->prev) {
-      evict->prev->next = NULL;
-    }
-    kvs_lru->tail = evict->prev;
-    free(evict->key);
-    free(evict->value);
-    free(evict);
-    kvs_lru->size--;
-  }
-
-  Node* N = create_node(key, temp);
-  if (N == NULL) {
-    return FAILURE;
-  }
-  N->next = kvs_lru->head;
-  if (kvs_lru->head) {
-    kvs_lru->head->prev = N;
-  }
-  kvs_lru->head = N;
-  if (kvs_lru->tail == NULL) {
-    kvs_lru->tail = N;
-  }
-  kvs_lru->size++;
-  strcpy(value, temp);
-
-  return SUCCESS;
+    return result;
+   }
 }
 
 int kvs_lru_flush(kvs_lru_t* kvs_lru) {
