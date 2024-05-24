@@ -104,22 +104,14 @@ int kvs_lru_set(kvs_lru_t* kvs_lru, const char* key, const char* value) {
       curr->value = strdup(value);
       if (!curr->value) return FAILURE;
 
-      if (curr != kvs_lru->head) {
-        detach_node(curr, kvs_lru);
-        curr->next = kvs_lru->head;
-        curr->prev = NULL;
-        if (kvs_lru->head) {
-          kvs_lru->head->prev = curr;
-        }
-        kvs_lru->head = curr;
-      }
+      move_front(kvs_lru, curr);
       return SUCCESS;
     }
     curr = curr->next;
   }
 
   // if key not found && cache full -> evict the lru
-  if (kvs_lru->size == kvs_lru->capacity) {
+  if (kvs_lru->size >= kvs_lru->capacity) {
     Node* evict = kvs_lru->tail;
     detach_node(evict, kvs_lru);
     // kvs_lru->tail = evict->prev;
