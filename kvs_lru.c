@@ -109,9 +109,10 @@ int kvs_lru_set(kvs_lru_t* kvs_lru, const char* key, const char* value) {
   Node* curr = kvs_lru->head;
   while (curr) {
     if (strcmp(curr->key, key) == 0) {
+      char* val = strdup(val);
+      if (!val) return FAILURE;
       free(curr->value);
-      curr->value = strdup(value);
-      if (!curr->value) return FAILURE;
+      curr->value = val;
 
       move_front(kvs_lru, curr);
       return SUCCESS;
