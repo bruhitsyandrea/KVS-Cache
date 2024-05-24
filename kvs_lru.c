@@ -1,6 +1,5 @@
 #include "kvs_lru.h"
 #define _POSIX_C_SOURCE 200809L
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -180,7 +179,6 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
       evict->prev->next = NULL;
     }
     kvs_lru->tail = evict->prev;
-    // kvs_lru->tail = evict->prev;
     free(evict->key);
     free(evict->value);
     free(evict);
@@ -191,8 +189,6 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
   if (N == NULL) {
     return FAILURE;
   }
-
-  printf("adding key to front: %s\n", key);
   N->next = kvs_lru->head;
   if (kvs_lru->head) {
     kvs_lru->head->prev = N;
