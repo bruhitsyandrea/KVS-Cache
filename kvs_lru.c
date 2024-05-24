@@ -175,10 +175,9 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
 
   if (kvs_lru->size >= kvs_lru->capacity) {
     Node* evict = kvs_lru->tail;
-    if (evict->prev) {
-      evict->prev->next = NULL;
-    }
-    kvs_lru->tail = evict->prev;
+    printf("evicting key: %s\n", evict->key);
+    detach_node(evict, kvs_lru);
+    //kvs_lru->tail = evict->prev;
     free(evict->key);
     free(evict->value);
     free(evict);
@@ -189,6 +188,8 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
   if (N == NULL) {
     return FAILURE;
   }
+
+  printf("adding key to front: %s\n", key);
   N->next = kvs_lru->head;
   if (kvs_lru->head) {
     kvs_lru->head->prev = N;
