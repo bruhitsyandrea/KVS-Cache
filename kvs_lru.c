@@ -59,7 +59,7 @@ void move_front(kvs_lru_t* cache, Node* node) {
 
   // detach the first node
   detach_node(node, cache);
-  node->next = node->head;
+  node->next = cache->head;
 
   node->prev = NULL;  // first node don't have anything in front
 
