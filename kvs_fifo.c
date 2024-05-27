@@ -36,10 +36,12 @@ static int enqueue(queue_t *queue, const char *key, const char *value) {
 
   if (queue->rear != NULL) {
     queue->rear->next = node;
+    queue->rear = queue->rear->next;
   } else {
     queue->front = node;
+    queue->rear = node;
   }
-  queue->rear = node;
+  // queue->rear = node;
   queue->size++;
 
   return 1;
