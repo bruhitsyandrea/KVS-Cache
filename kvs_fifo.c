@@ -155,6 +155,7 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
 
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
+    kvs_base_set(kvs_fifo->kvs_base, evict->key, evict->value);
     free_node(evict);
   }
 
