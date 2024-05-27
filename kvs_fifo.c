@@ -31,6 +31,7 @@ static void free_node(queue_node *node);
 
 static int enqueue(queue_t *queue, const char *key, const char *value) {
   queue_node *node = create_node(key, value);
+  // printf("Enqueuing: %s\n", value);
   if (node == NULL) {
     return 0;
   }
@@ -42,7 +43,7 @@ static int enqueue(queue_t *queue, const char *key, const char *value) {
   }
   queue->rear = node;
   queue->size++;
-
+  // printf("Finished enqueueing: %s\n", value);
   return 1;
 }
 
@@ -129,6 +130,7 @@ void kvs_fifo_free(kvs_fifo_t **ptr) {
 
 int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
   // TODO: implement this function
+  // printf("Set is running...\n");
   if (kvs_fifo == NULL || kvs_fifo->queue == NULL) {
     return FAILURE;
   }
@@ -162,6 +164,7 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
 
 int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
   // TODO: implement this function
+  // printf("Get is running...\n");
   if (kvs_fifo == NULL || kvs_fifo->queue == NULL || key == NULL ||
       value == NULL) {
     return FAILURE;
@@ -181,10 +184,11 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     return FAILURE;
   }
 
-  if (kvs_base_get(kvs_fifo->kvs_base, key, temp) == FAILURE) {
-    free(temp);
-    return FAILURE;
+  if (kvs_base_get(kvs_fifo->kvs_base, key, temp) == 0) {
+    // free(temp);
+    // return FAILURE;
   }
+  // printf("Cummaster: %s\n", key);
 
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
@@ -198,7 +202,7 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
 
   strcpy(value, temp);
   free(temp);
-  printf("Get retuns: %s\n", value);
+  // printf("Get retuns: %s\n", value);
   return SUCCESS;
 }
 
