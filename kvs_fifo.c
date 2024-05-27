@@ -220,7 +220,7 @@ int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
   int flush = SUCCESS;
 
   while (curr != NULL) {
-    if (kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) == FAILURE) {
+    if (kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) != 0) {
       flush = FAILURE;
     }
     curr = curr->next;
