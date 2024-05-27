@@ -218,7 +218,7 @@ int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
   }
 
   while (kvs_fifo->queue->front != NULL) {
-    queue_node *evict = dequeue(kvs_fifo->dequeue);
+    queue_node *evict = dequeue(kvs_fifo->queue);
     free_node(evict);
   }
 
