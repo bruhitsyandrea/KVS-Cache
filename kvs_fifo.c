@@ -191,10 +191,10 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
   if (kvs_base_get(kvs_fifo->kvs_base, key, temp) != 0) {
     free(temp);
     return FAILURE;
-    strcpy(value, temp);
-    free(temp);
-    return SUCCESS;
-    // return FAILURE;
+    // strcpy(value, temp);
+    // free(temp);
+    // return SUCCESS;
+    //  return FAILURE;
   }
   // return FAILURE;
   //  printf("Cummaster: %s\n", key);
@@ -223,11 +223,6 @@ int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
 
   queue_node *curr = kvs_fifo->queue->front;
   int flush = SUCCESS;
-
-  char *temp = malloc(KVS_VALUE_MAX);
-  if (temp == NULL) {
-    return FAILURE;
-  }
 
   while (curr != NULL) {
     // if (kvs_base_get(kvs_fifo->kvs_base, curr->key, temp) != 0) {
