@@ -160,43 +160,46 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
 }
 
 int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
-  // TODO: implement this function
   if (kvs_fifo == NULL || kvs_fifo->queue == NULL || key == NULL ||
       value == NULL) {
     return FAILURE;
   }
 
+  // First, search the cache for the key
   queue_node *curr = kvs_fifo->queue->front;
   while (curr != NULL) {
     if (strcmp(curr->key, key) == 0) {
-      strcpy(value, curr->value);
+      strcpy(value, curr->value);  // Copy the value from cache
       return SUCCESS;
     }
     curr = curr->next;
   }
 
+  // If the key is not found in the cache, fetch it from the base store
   char *temp = malloc(KVS_VALUE_MAX);
   if (temp == NULL) {
-    return FAILURE;
+    return FAILURE;  // Memory allocation failure
   }
 
   if (kvs_base_get(kvs_fifo->kvs_base, key, temp) == FAILURE) {
     free(temp);
-    return FAILURE;
+    return FAILURE;  // Base get failure
   }
 
+  // Check if the cache is full, evict the oldest item if needed
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
-    free_node(evict);
+    free_node(evict);  // Free the evicted node
   }
 
+  // Add the newly fetched item to the cache
   if (!enqueue(kvs_fifo->queue, key, temp)) {
     free(temp);
-    return FAILURE;
+    return FAILURE;  // Enqueue failure
   }
 
-  strcpy(value, temp);
-  free(temp);
+  strcpy(value, temp);  // Copy the fetched value to output
+  free(temp);           // Free temporary buffer
   return SUCCESS;
 }
 
