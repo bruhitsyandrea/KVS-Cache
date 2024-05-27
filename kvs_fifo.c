@@ -161,21 +161,21 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
 
 int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
   // TODO: implement this function
-  /*if (kvs_fifo == NULL || kvs_fifo->queue == NULL || key == NULL ||
+  if (kvs_fifo == NULL || kvs_fifo->queue == NULL || key == NULL ||
       value == NULL) {
     return FAILURE;
-  }*/
+  }
 
   queue_node *curr = kvs_fifo->queue->front;
   while (curr != NULL) {
     if (strcmp(curr->key, key) == 0) {
-      // strcpy(value, curr->value);
+      strcpy(value, curr->value);
       return SUCCESS;
     }
     curr = curr->next;
   }
 
-  char *temp = malloc(KVS_VALUE_MAX);
+  /*char *temp = malloc(KVS_VALUE_MAX);
   if (temp == NULL) {
     return FAILURE;
   }
@@ -187,17 +187,14 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
 
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
-    /*free(evict->key);
-    free(evict->value);
-    free(evict);*/
     free_node(evict);
   }
 
   enqueue(kvs_fifo->queue, key, temp);
 
   strcpy(value, temp);
-  free(temp);
-  return SUCCESS;
+  free(temp);*/
+  return FAILURE;
 }
 
 int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
