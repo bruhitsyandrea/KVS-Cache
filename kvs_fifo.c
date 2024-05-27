@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/** Struct Definitions **/
+/**Struct Definitions**/
 typedef struct queue_node {
   char *key;
   char *value;
@@ -12,43 +12,21 @@ typedef struct queue_node {
 } queue_node;
 
 typedef struct {
-  queue_node *front;
-  queue_node *rear;
-  int size;
+  queue_node *front;  // oldest
+  queue_node *rear;   // newest
+  int size;           // curr num of nodes in the queue
 } queue_t;
 
-typedef struct kvs_fifo {
-  kvs_base_t *kvs_base;
-  int capacity;
-  queue_t *queue;
-} kvs_fifo_t;
+struct kvs_fifo {
+  // TODO: add necessary variables
+  kvs_base_t *kvs_base;  // storage disk
+  int capacity;          // max num of items in the cache
+  queue_t *queue;        // this is the queue
+};
 
-/** Helper Functions **/
-static queue_node *create_node(const char *key, const char *value) {
-  queue_node *node = malloc(sizeof(queue_node));
-  if (node == NULL) return NULL;
-
-  node->key = strdup(key);
-  node->value = strdup(value);
-
-  if (node->key == NULL || node->value == NULL) {
-    free(node->key);
-    free(node->value);
-    free(node);
-    return NULL;
-  }
-
-  node->next = NULL;
-  return node;
-}
-
-static void free_node(queue_node *node) {
-  if (node) {
-    free(node->key);
-    free(node->value);
-    free(node);
-  }
-}
+/**Helper Functions**/
+static queue_node *create_node(const char *key, const char *value);
+static void free_node(queue_node *node);
 
 static void enqueue(queue_t *queue, const char *key, const char *value) {
   queue_node *node = create_node(key, value);
@@ -68,6 +46,7 @@ static queue_node *dequeue(queue_t *queue) {
 
   queue_node *node = queue->front;
   queue->front = queue->front->next;
+
   if (queue->front == NULL) {
     queue->rear = NULL;
   }
@@ -75,7 +54,36 @@ static queue_node *dequeue(queue_t *queue) {
   return node;
 }
 
-/** kvs_fifo Function Definitions **/
+static queue_node *create_node(const char *key, const char *value) {
+  queue_node *node = malloc(sizeof(queue_node));
+  if (node == NULL) {
+    return NULL;
+  }
+
+  node->key = strdup(key);
+  node->value = strdup(value);
+
+  if (node->key == NULL || node->value == NULL) {
+    free(node->key);
+    free(node->value);
+    free(node);
+    return NULL;
+  }
+
+  node->next = NULL;
+  // free_node(node);
+  return node;
+}
+
+static void free_node(queue_node *node) {
+  if (node) {
+    free(node->key);
+    free(node->value);
+    free(node);
+  }
+}
+
+/**kvs_fifo Function Definitions**/
 kvs_fifo_t *kvs_fifo_new(kvs_base_t *kvs, int capacity) {
   kvs_fifo_t *kvs_fifo = malloc(sizeof(kvs_fifo_t));
   if (kvs_fifo == NULL) {
@@ -83,6 +91,8 @@ kvs_fifo_t *kvs_fifo_new(kvs_base_t *kvs, int capacity) {
   }
   kvs_fifo->kvs_base = kvs;
   kvs_fifo->capacity = capacity;
+
+  // TODO: initialize other variables
   kvs_fifo->queue = malloc(sizeof(queue_t));
   if (kvs_fifo->queue == NULL) {
     free(kvs_fifo);
@@ -97,6 +107,7 @@ kvs_fifo_t *kvs_fifo_new(kvs_base_t *kvs, int capacity) {
 }
 
 void kvs_fifo_free(kvs_fifo_t **ptr) {
+  // TODO: free dynamically allocated memory
   if (ptr == NULL || *ptr == NULL) return;
 
   queue_node *curr = (*ptr)->queue->front;
@@ -112,44 +123,50 @@ void kvs_fifo_free(kvs_fifo_t **ptr) {
 }
 
 int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
-  if (kvs_fifo == NULL || kvs_fifo->queue == NULL) {
+  // TODO: implement this function
+  /*if (kvs_fifo == NULL || kvs_fifo->queue == NULL) {
     return FAILURE;
-  }
+  }*/
 
-  // Check for existing key and update
+  // find key
   queue_node *curr = kvs_fifo->queue->front;
   while (curr != NULL) {
     if (strcmp(curr->key, key) == 0) {
       free(curr->value);
       curr->value = strdup(value);
-      if (curr->value == NULL) {
+      /*if (curr->value == NULL) {
         return FAILURE;
-      }
+      }*/
       return SUCCESS;
     }
     curr = curr->next;
   }
 
-  // Evict if full
+  // full cache, evict oldest one
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
-    if (evict == NULL) {
+    /*if (evict == NULL) {
       return FAILURE;
     }
+
+    free(evict->key);
+    free(evict->value);
+    free(evict);*/
     free_node(evict);
   }
 
-  // Enqueue new node
   enqueue(kvs_fifo->queue, key, value);
   return SUCCESS;
+  // return FAILURE;
 }
 
 int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
-  if (kvs_fifo == NULL || kvs_fifo->queue == NULL || key == NULL || value == NULL) {
+  // TODO: implement this function
+  if (kvs_fifo == NULL || kvs_fifo->queue == NULL || key == NULL ||
+      value == NULL) {
     return FAILURE;
   }
 
-  // Search in the queue
   queue_node *curr = kvs_fifo->queue->front;
   while (curr != NULL) {
     if (strcmp(curr->key, key) == 0) {
@@ -159,7 +176,6 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     curr = curr->next;
   }
 
-  // If not found in queue, try disk
   char *temp = malloc(KVS_VALUE_MAX);
   if (temp == NULL) {
     return FAILURE;
@@ -170,34 +186,35 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     return FAILURE;
   }
 
-  // Cache disk result
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
-    free_node(evict);
+    free(evict->key);
+    free(evict->value);
+    free(evict);
   }
 
   enqueue(kvs_fifo->queue, key, temp);
+
   strcpy(value, temp);
   free(temp);
   return SUCCESS;
 }
 
 int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
+  // TODO: implement this function
   if (kvs_fifo == NULL || kvs_fifo->queue == NULL) {
     return FAILURE;
   }
 
-  // Flush all entries to disk
   queue_node *curr = kvs_fifo->queue->front;
-  int flush_status = SUCCESS;
+  int flush = SUCCESS;
 
   while (curr != NULL) {
     if (kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) == FAILURE) {
-      flush_status = FAILURE;
+      flush = FAILURE;
     }
     curr = curr->next;
   }
 
-  return flush_status;
+  return flush;
 }
-
