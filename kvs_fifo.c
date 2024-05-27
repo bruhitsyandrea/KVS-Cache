@@ -185,7 +185,9 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
   }
 
   if (kvs_base_get(kvs_fifo->kvs_base, key, temp) == 0) {
-    // free(temp);
+    strcpy(value, temp);
+    free(temp);
+    return SUCCESS;
     // return FAILURE;
   }
   // printf("Cummaster: %s\n", key);
