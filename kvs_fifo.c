@@ -190,11 +190,14 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     free_node(evict);
   }
 
-  enqueue(kvs_fifo->queue, key, temp);
+  if (!enqueue(kvs_fifo->queue, key, temp)) {
+    free(temp);
+    return FAILURE;
+  }
 
   strcpy(value, temp);
   free(temp);
-  return FAILURE;
+  return SUCCESS;
 }
 
 int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
