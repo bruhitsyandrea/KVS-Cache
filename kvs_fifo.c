@@ -228,16 +228,16 @@ int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
   }
 
   while (curr != NULL) {
-    if (kvs_base_get(kvs_fifo->kvs_base, curr->key, temp) != 0) {
-      return FAILURE;
-    } else {
-      if (strcmp(temp, "") == 0) {
-        if (kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) != 0) {
-          flush = FAILURE;
-        }
-      }
-    }
+    // if (kvs_base_get(kvs_fifo->kvs_base, curr->key, temp) != 0) {
+    //   return FAILURE;
+    // } else {
 
+    //   }
+    // }
+    if (curr->dirty == true &&
+        kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) != 0) {
+      flush = FAILURE;
+    }
     curr = curr->next;
   }
 
