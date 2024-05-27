@@ -184,8 +184,8 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     return FAILURE;
   }
 
-  if (kvs_base_get(kvs_fifo->kvs_base, key, temp) == 0) {
-    strcpy(value, temp);
+  if (kvs_base_get(kvs_fifo->kvs_base, key, temp) != 0) {
+    strcpy(value, "");
     free(temp);
     return SUCCESS;
     // return FAILURE;
