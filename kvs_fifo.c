@@ -9,6 +9,7 @@
 typedef struct queue_node {
   char *key;
   char *value;
+  bool dirty;
   struct queue_node *next;
 } queue_node;
 
@@ -29,8 +30,10 @@ struct kvs_fifo {
 static queue_node *create_node(const char *key, const char *value);
 static void free_node(queue_node *node);
 
-static int enqueue(queue_t *queue, const char *key, const char *value) {
+static int enqueue(queue_t *queue, const char *key, const char *value,
+                   bool dirty) {
   queue_node *node = create_node(key, value);
+  node->dirty = dirty;
   // printf("Enqueuing: %s\n", value);
   if (node == NULL) {
     return 0;
@@ -154,7 +157,7 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
     free_node(evict);
   }
 
-  if (!enqueue(kvs_fifo->queue, key, value)) {
+  if (!enqueue(kvs_fifo->queue, key, value, true)) {
     return FAILURE;
   }
   // enqueue(kvs_fifo->queue, key, value);
@@ -199,7 +202,7 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     free_node(evict);
   }
 
-  if (!enqueue(kvs_fifo->queue, key, temp)) {
+  if (!enqueue(kvs_fifo->queue, key, temp, false)) {
     free(temp);
     return FAILURE;
   }
