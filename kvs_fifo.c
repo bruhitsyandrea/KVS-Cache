@@ -28,9 +28,11 @@ struct kvs_fifo {
 static queue_node *create_node(const char *key, const char *value);
 static void free_node(queue_node *node);
 
-static void enqueue(queue_t *queue, const char *key, const char *value) {
+static int enqueue(queue_t *queue, const char *key, const char *value) {
   queue_node *node = create_node(key, value);
-  if (node == NULL) return;
+  if (node == NULL) {
+    return 0;
+  }
 
   if (queue->rear != NULL) {
     queue->rear->next = node;
@@ -39,6 +41,8 @@ static void enqueue(queue_t *queue, const char *key, const char *value) {
   }
   queue->rear = node;
   queue->size++;
+
+  return 1;
 }
 
 static queue_node *dequeue(queue_t *queue) {
@@ -124,38 +128,33 @@ void kvs_fifo_free(kvs_fifo_t **ptr) {
 
 int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
   // TODO: implement this function
-  /*if (kvs_fifo == NULL || kvs_fifo->queue == NULL) {
+  if (kvs_fifo == NULL || kvs_fifo->queue == NULL) {
     return FAILURE;
-  }*/
+  }
 
-  // find key
+  // 1. check if the key exist and update it if it does
   queue_node *curr = kvs_fifo->queue->front;
   while (curr != NULL) {
     if (strcmp(curr->key, key) == 0) {
       free(curr->value);
       curr->value = strdup(value);
-      /*if (curr->value == NULL) {
+      if (curr->value == NULL) {
         return FAILURE;
-      }*/
+      }
       return SUCCESS;
     }
     curr = curr->next;
   }
 
-  // full cache, evict oldest one
   if (kvs_fifo->queue->size >= kvs_fifo->capacity) {
     queue_node *evict = dequeue(kvs_fifo->queue);
-    /*if (evict == NULL) {
-      return FAILURE;
-    }
-
-    free(evict->key);
-    free(evict->value);
-    free(evict);*/
     free_node(evict);
   }
 
-  enqueue(kvs_fifo->queue, key, value);
+  if (!enqueue(kvs_fifo->queue, key, value)) {
+    return FAILURE;
+  }
+  // enqueue(kvs_fifo->queue, key, value);
   return SUCCESS;
   // return FAILURE;
 }
