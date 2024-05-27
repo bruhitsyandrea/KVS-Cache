@@ -147,6 +147,7 @@ int kvs_fifo_set(kvs_fifo_t *kvs_fifo, const char *key, const char *value) {
       if (curr->value == NULL) {
         return FAILURE;
       }
+      curr->dirty = true;
       return SUCCESS;
     }
     curr = curr->next;
@@ -235,7 +236,7 @@ int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
     //   }
     // }
     if (curr->dirty == true &&
-        kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) != 0) {
+        (kvs_base_set(kvs_fifo->kvs_base, curr->key, curr->value) != 0)) {
       flush = FAILURE;
     }
     curr = curr->next;
