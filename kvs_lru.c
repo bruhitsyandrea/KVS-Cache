@@ -205,7 +205,7 @@ int kvs_lru_get(kvs_lru_t* kvs_lru, const char* key, char* value) {
 
 int kvs_lru_flush(kvs_lru_t* kvs_lru) {
   // TODO: implement this function
-  if (kvs_lru == NULL) {
+  /*if (kvs_lru == NULL) {
     return FAILURE;
   }
 
@@ -217,6 +217,7 @@ int kvs_lru_flush(kvs_lru_t* kvs_lru) {
       flush_stats = FAILURE;
     }
     curr = curr->next;
-  }
-  return flush_stats;
+  }*/
+  /*return flush_stats;*/
+  return 0;
 }
