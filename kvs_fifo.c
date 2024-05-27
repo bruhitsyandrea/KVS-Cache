@@ -175,7 +175,7 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
     curr = curr->next;
   }
 
-  /*char *temp = malloc(KVS_VALUE_MAX);
+  char *temp = malloc(KVS_VALUE_MAX);
   if (temp == NULL) {
     return FAILURE;
   }
@@ -193,7 +193,7 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
   enqueue(kvs_fifo->queue, key, temp);
 
   strcpy(value, temp);
-  free(temp);*/
+  free(temp);
   return FAILURE;
 }
 
