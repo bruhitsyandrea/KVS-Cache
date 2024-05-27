@@ -1,6 +1,7 @@
 #include "kvs_fifo.h"
 #define _POSIX_C_SOURCE 200809L
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,12 +37,10 @@ static int enqueue(queue_t *queue, const char *key, const char *value) {
 
   if (queue->rear != NULL) {
     queue->rear->next = node;
-    queue->rear = queue->rear->next;
   } else {
     queue->front = node;
-    queue->rear = node;
   }
-  // queue->rear = node;
+  queue->rear = node;
   queue->size++;
 
   return 1;
@@ -199,6 +198,7 @@ int kvs_fifo_get(kvs_fifo_t *kvs_fifo, const char *key, char *value) {
 
   strcpy(value, temp);
   free(temp);
+  printf("Get retuns: %s\n", value);
   return SUCCESS;
 }
 
