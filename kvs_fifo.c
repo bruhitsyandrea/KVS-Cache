@@ -217,5 +217,10 @@ int kvs_fifo_flush(kvs_fifo_t *kvs_fifo) {
     curr = curr->next;
   }
 
+  while (kvs_fifo->queue->front != NULL) {
+    queue_node *evict = dequeue(kvs_fifo->dequeue);
+    free_node(evict);
+  }
+
   return flush;
 }
