@@ -272,13 +272,7 @@ int kvs_lru_flush(kvs_lru_t *kvs_lru) {
   }
 
   while (kvs_lru->queue->front != NULL) {
-    queue_node *evict = kvs_lru->queue->front;
-    kvs_lru->queue->front = evict->next;
-    if (kvs_lru->queue->front) {
-      kvs_lru->queue->front->prev = NULL;
-    } else {
-      kvs_lru->queue->rear = NULL;
-    }
+    queue_node *evict = dequeue(kvs_lru->queue);
     free_node(evict);
   }
 
