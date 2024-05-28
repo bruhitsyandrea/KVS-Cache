@@ -30,6 +30,41 @@ struct kvs_lru {
 /**Helper Functions**/
 static queue_node *create_node(const char *key, const char *value);
 static void free_node(queue_node *node);
+/*
+static int enqueue(queue_t *queue, const char *key, const char *value,
+                   bool dirty) {
+  queue_node *node = create_node(key, value);
+  node->dirty = dirty;
+  // printf("Enqueuing: %s\n", value);
+  if (node == NULL) {
+    return 0;
+  }
+
+  if (queue->rear != NULL) {
+    queue->rear->next = node;
+  } else {
+    queue->front = node;
+  }
+  queue->rear = node;
+  queue->size++;
+  // printf("Finished enqueueing: %s\n", value);
+  return 1;
+}
+*/
+static queue_node *dequeue(queue_t *queue) {
+  if (queue->front == NULL) return NULL;
+
+  queue_node *node = queue->front;
+  queue->front = queue->front->next;
+
+  if (queue->front == NULL) {
+    queue->rear = NULL;
+  } else {
+    queue->front->prev = NULL;
+  }
+  queue->size--;
+  return node;
+}
 
 static queue_node *create_node(const char *key, const char *value) {
   queue_node *node = malloc(sizeof(queue_node));
@@ -50,7 +85,6 @@ static queue_node *create_node(const char *key, const char *value) {
     return NULL;
   }
 
-  node->next = NULL;
   // free_node(node);
   return node;
 }
@@ -156,18 +190,11 @@ int kvs_lru_set(kvs_lru_t *kvs_lru, const char *key, const char *value) {
   }
 
   if (kvs_lru->queue->size >= kvs_lru->capacity) {
-    queue_node *evict = kvs_lru->queue->front;
-
-    if (evict) {
-      kvs_lru->queue->front = evict->next;
-      if (kvs_lru->queue->front) {
-        kvs_lru->queue->front->prev = NULL;
-      } else {
-        kvs_lru->queue->rear = NULL;
-      }
-      free_node(evict);
-      kvs_lru->queue->size--;
+    queue_node *evict = dequeue(kvs_lru->queue);
+    if (evict->dirty == true) {
+      kvs_base_set(kvs_lru->kvs_base, evict->key, evict->value);
     }
+    free_node(evict);
   }
 
   queue_node *node = create_node(key, value);
