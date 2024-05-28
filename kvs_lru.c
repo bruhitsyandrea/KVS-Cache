@@ -236,17 +236,8 @@ int kvs_lru_get(kvs_lru_t *kvs_lru, const char *key, char *value) {
   }
 
   if (kvs_lru->queue->size >= kvs_lru->capacity) {
-    queue_node *evict = kvs_lru->queue->front;
-    if (evict) {
-      kvs_lru->queue->front = evict->next;
-      if (kvs_lru->queue->front) {
-        kvs_lru->queue->front->prev = NULL;
-      } else {
-        kvs_lru->queue->rear = NULL;
-      }
-      free_node(evict);
-      kvs_lru->queue->size--;
-    }
+    queue_node *evict = dequeue(kvs_lru->queue);
+    free_node(evict);
   }
 
   queue_node *node = create_node(key, temp);
