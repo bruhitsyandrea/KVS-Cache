@@ -30,7 +30,7 @@ struct kvs_lru {
 /**Helper Functions**/
 static queue_node *create_node(const char *key, const char *value);
 static void free_node(queue_node *node);
-/*
+
 static int enqueue(queue_t *queue, const char *key, const char *value,
                    bool dirty) {
   queue_node *node = create_node(key, value);
@@ -50,7 +50,7 @@ static int enqueue(queue_t *queue, const char *key, const char *value,
   // printf("Finished enqueueing: %s\n", value);
   return 1;
 }
-*/
+
 static queue_node *dequeue(queue_t *queue) {
   if (queue->front == NULL) return NULL;
 
@@ -197,13 +197,9 @@ int kvs_lru_set(kvs_lru_t *kvs_lru, const char *key, const char *value) {
     free_node(evict);
   }
 
-  queue_node *node = create_node(key, value);
-  if (node == NULL) {
+  if (!enqueue(kvs_lru->queue, key, value, true)) {
     return FAILURE;
   }
-  node->dirty = true;
-  shift_node(kvs_lru->queue, node);
-  kvs_lru->queue->size++;
   return SUCCESS;
 }
 
@@ -245,9 +241,10 @@ int kvs_lru_get(kvs_lru_t *kvs_lru, const char *key, char *value) {
     free(temp);
     return FAILURE;
   }
-  node->dirty = false;
-  shift_node(kvs_lru->queue, node);
-  kvs_lru->queue->size++;
+  if (!enqueue(kvs_lru->queue, key, temp, false)) {
+    free(temp);
+    return FAILURE;
+  }
   strcpy(value, temp);
   free(temp);
   // printf("Get retuns: %s\n", value);
