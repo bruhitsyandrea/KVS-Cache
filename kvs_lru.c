@@ -237,6 +237,9 @@ int kvs_lru_get(kvs_lru_t *kvs_lru, const char *key, char *value) {
   if (kvs_lru->queue->size >= kvs_lru->capacity) {
     queue_node *evict = dequeue(kvs_lru->queue);
     if (evict) {
+      if (evict->dirty) {
+        kvs_base_set(kvs_lru->kvs_base, evict->key, evict->value);
+      }
       free_node(evict);
     };
   }
@@ -246,9 +249,8 @@ int kvs_lru_get(kvs_lru_t *kvs_lru, const char *key, char *value) {
     free(temp);
     return FAILURE;
   }
-
-  enqueue(kvs_lru->queue, node);
   node->dirty = false;
+  enqueue(kvs_lru->queue, node);
   strcpy(value, temp);
   free(temp);
   // printf("Get retuns: %s\n", value);
