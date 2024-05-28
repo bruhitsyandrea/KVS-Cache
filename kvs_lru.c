@@ -246,8 +246,9 @@ int kvs_lru_get(kvs_lru_t *kvs_lru, const char *key, char *value) {
     free(temp);
     return FAILURE;
   }
-  node->dirty = false;
+
   enqueue(kvs_lru->queue, node);
+  node->dirty = false;
   strcpy(value, temp);
   free(temp);
   // printf("Get retuns: %s\n", value);
