@@ -8,9 +8,8 @@ This project implements a **Key-Value Store (KVS) Cache** with a focus on optimi
 
 ## 🚀 Features
 - **Multi-level Caching**: Implements FIFO, LRU, and Clock algorithms to optimize cache performance.
-- **In-memory and Disk Storage**: Supports both memory and disk-based storage to enhance data retrieval efficiency.
+- **Efficient Data Storage**: Supports in-memory caching to enhance data retrieval speeds.
 - **Scalable Solution**: Efficiently handles large datasets with reduced latency.
-- **Docker Support**: Easy setup using Docker for a consistent development environment.
 
 ## ⚙️ Installation
 To set up the project locally, follow these steps:
